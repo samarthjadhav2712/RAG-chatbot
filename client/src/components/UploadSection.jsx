@@ -1,15 +1,21 @@
+// 📁 components/UploadSection.jsx (Simplified for UI/UX)
+
 "use client"
 
 import { motion } from "framer-motion"
 import { Upload, FileText, Zap } from "lucide-react"
 import { useState } from "react"
 import { useTheme } from "../context/ThemeContext"
+// NOTE: axios import and handleUpload function are REMOVED
 
-export default function UploadSection({ onFileSelect, isProcessing }) {
+// Prop changed to onFileSelect (as used in App.jsx)
+export default function UploadSection({ onFileSelect, isProcessing }) { 
   const [fileName, setFileName] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [uploadError, setUploadError] = useState(null) // Only for validation error display
   const { isDark, colors } = useTheme()
 
+  // --- Drag & Drop Handlers ---
   const handleDragOver = (e) => {
     e.preventDefault()
     setIsDragging(true)
@@ -19,27 +25,46 @@ export default function UploadSection({ onFileSelect, isProcessing }) {
     setIsDragging(false)
   }
 
+  const handleFile = (file) => {
+    setUploadError(null); 
+    if (isProcessing) return; 
+
+    if (file && file.type === "application/pdf") {
+      setFileName(file.name);
+      onFileSelect(file); // 👈 Passes the file object to App.jsx
+    } else if (file) {
+      setUploadError("Only PDF files are supported.")
+    }
+  }
+
   const handleDrop = (e) => {
     e.preventDefault()
     setIsDragging(false)
     const file = e.dataTransfer.files[0]
-    if (file && file.type === "application/pdf") {
-      setFileName(file.name)
-      onFileSelect(file)
-    }
+    handleFile(file)
   }
 
+  // --- File Input Handler ---
   const handleFileInput = (e) => {
     const file = e.target.files[0]
-    if (file && file.type === "application/pdf") {
-      setFileName(file.name)
-      onFileSelect(file)
-    }
+    handleFile(file)
+    e.target.value = null
   }
+
+  // Determine Tailwind classes for the drop zone (remains the same)
+  const dropzoneStyle = isDragging
+    ? isDark
+      ? "border-blue-500 bg-blue-500/10 scale-105"
+      : "border-blue-600 bg-blue-100 scale-105"
+    : isDark
+      ? "border-slate-600 hover:border-slate-500 bg-slate-800/50 hover:bg-slate-800"
+      : "border-slate-300 hover:border-slate-400 bg-slate-100 hover:bg-slate-200"
+
+  const isDisabled = isProcessing
 
   return (
     <div className={`flex-1 flex flex-col items-center justify-center p-8 ${colors.text.primary}`}>
-      {/* Header */}
+      {/* Header (remains the same) */}
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
         <div className="flex items-center justify-center gap-3 mb-4">
           <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${colors.accent} flex items-center justify-center`}>
@@ -50,7 +75,7 @@ export default function UploadSection({ onFileSelect, isProcessing }) {
         <p className={colors.text.secondary}>Upload your documents to get started</p>
       </motion.div>
 
-      {/* Upload Area */}
+      {/* Upload Area (remains the same) */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -58,17 +83,11 @@ export default function UploadSection({ onFileSelect, isProcessing }) {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`w-full max-w-md p-8 rounded-2xl border-2 border-dashed transition-all cursor-pointer ${
-          isDragging
-            ? isDark
-              ? "border-blue-500 bg-blue-500/10 scale-105"
-              : "border-blue-600 bg-blue-100 scale-105"
-            : isDark
-              ? "border-slate-600 hover:border-slate-500 bg-slate-800/50 hover:bg-slate-800"
-              : "border-slate-300 hover:border-slate-400 bg-slate-100 hover:bg-slate-200"
-        }`}
+        className={`w-full max-w-md p-8 rounded-2xl border-2 border-dashed transition-all ${
+          isDisabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+        } ${dropzoneStyle}`}
       >
-        <label className="cursor-pointer block">
+        <label className={`block ${isDisabled ? "pointer-events-none" : "cursor-pointer"}`}>
           <div className="flex flex-col items-center gap-4">
             <motion.div
               animate={{ y: isDragging ? -5 : 0 }}
@@ -77,17 +96,30 @@ export default function UploadSection({ onFileSelect, isProcessing }) {
               <Upload className={`w-8 h-8 ${isDark ? "text-blue-400" : "text-blue-600"}`} />
             </motion.div>
             <div className="text-center">
-              <p className={`font-semibold ${colors.text.primary}`}>{fileName ? fileName : "Drag PDF here"}</p>
+              <p className={`font-semibold ${colors.text.primary}`}>
+                {fileName ? fileName : "Drag PDF here"}
+              </p>
               <p className={`${colors.text.secondary} text-sm mt-1`}>
-                {fileName ? "Ready to process" : "or click to select"}
+                {fileName ? "Processing document" : "or click to select"}
               </p>
             </div>
           </div>
-          <input type="file" accept=".pdf" onChange={handleFileInput} className="hidden" disabled={isProcessing} />
+          <input type="file" accept=".pdf" onChange={handleFileInput} className="hidden" disabled={isDisabled} />
         </label>
       </motion.div>
 
-      {/* Info Cards */}
+      {/* Upload Error Display (remains the same) */}
+      {uploadError && (
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-4 text-sm text-red-500 font-medium max-w-md text-center"
+        >
+          🚨 {uploadError}
+        </motion.p>
+      )}
+
+      {/* Info Cards (remains the same) */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -114,7 +146,7 @@ export default function UploadSection({ onFileSelect, isProcessing }) {
         </div>
       </motion.div>
 
-      {/* Status */}
+      {/* Status (Loading Animation) */}
       {isProcessing && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-8 text-center">
           <div className="inline-flex items-center gap-2">

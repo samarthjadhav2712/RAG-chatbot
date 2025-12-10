@@ -7,6 +7,7 @@ import ChatSection from "./components/ChatSection"
 import PipelineVisualization from "./components/PipelineVisualization"
 import LandingPage from "./components/LandingPage"
 import { Moon, Sun } from "lucide-react"
+import { uploadFile } from "./api/uploadApi"
 
 function AppContent() {
   const [isUploaded, setIsUploaded] = useState(false)
@@ -16,15 +17,55 @@ function AppContent() {
   const [chatStep, setChatStep] = useState(0)
   const [showLanding, setShowLanding] = useState(true)
   const { isDark, toggleTheme, colors } = useTheme()
+  const [documentId, setDocumentId] = useState(null)
 
-  const handleFileSelect = (file) => {
-    setIsProcessing(true)
-    setCurrentStep(0)
-  }
+  // --- MODIFIED HANDLER TO INCLUDE API CALL ---
+const handleFileSelect = async (file) => {
+    // 1. Start processing & visualization
+    setIsProcessing(true);
+    setCurrentStep(0);
+
+    const UPLOAD_STEPS_TO_CYCLE = 3; // Cycle through Extract, Chunking, Embedding (Steps 1-3)
+    const FINAL_STEP = 4;            // Step 4 is final (Store in Vector DB)
+
+    // 2. Start visualization interval: CYCLE steps 0, 1, 2, 3...
+    const stepInterval = setInterval(() => {
+        setCurrentStep(prev => {
+            // Cycle back to 0 when reaching the step BEFORE the maximum cycle step
+            if (prev < UPLOAD_STEPS_TO_CYCLE - 1) {
+                return prev + 1;
+            } else {
+                // Stick at the last cycling step (Step 3: Generate Embeddings)
+                return UPLOAD_STEPS_TO_CYCLE - 1; 
+            }
+        });
+    }, 1000); // Using 1 second for visual consistency
+
+    // 3. Perform the actual API upload
+    const response = await uploadFile(file);
+
+    // 4. Stop visualization interval
+    clearInterval(stepInterval); 
+    setIsProcessing(false); // Stop loading spinner/animations
+
+    // 5. Handle the API response
+    if (response.success) {
+        // Successful completion: Jump to the final step
+        setCurrentStep(FINAL_STEP); // SET currentStep to 4 (Completion)
+        
+        const newDocumentId = response.result?.document_id || 'DEFAULT_DOC_ID';
+        setDocumentId(newDocumentId);
+        setIsUploaded(true); // Switch to Chat View
+    } else {
+        // Handle upload failure: Stop visualization and reset, or keep it at the last non-committal step
+        setCurrentStep(0); // Reset the visualization to the start
+        alert(`Upload Failed: ${response.error}`);
+        setIsUploaded(false); 
+    }
+};
 
   const handleProcessingComplete = () => {
     setIsProcessing(false)
-    setIsUploaded(true)
   }
 
   const handleQuerySubmit = () => {
@@ -40,7 +81,7 @@ function AppContent() {
     return <LandingPage onGetStarted={() => setShowLanding(false)} />
   }
 
-  return (
+return (
     <div className={`min-h-screen bg-gradient-to-br ${colors.bg.primary} ${colors.text.primary}`}>
       <button
         onClick={toggleTheme}
@@ -55,7 +96,8 @@ function AppContent() {
           {!isUploaded ? (
             <UploadSection onFileSelect={handleFileSelect} isProcessing={isProcessing} />
           ) : (
-            <ChatSection onQuerySubmit={handleQuerySubmit} isChatProcessing={isChatProcessing} />
+            // Pass documentId to ChatSection for API calls
+            <ChatSection documentId={documentId}  onQuerySubmit={handleQuerySubmit} onChatComplete={handleChatComplete}  isChatProcessing={isChatProcessing} setChatStep={setChatStep}  chatStep={chatStep}/> 
           )}
         </div>
 
@@ -65,7 +107,7 @@ function AppContent() {
             isProcessing={isProcessing}
             currentStep={currentStep}
             setCurrentStep={setCurrentStep}
-            onComplete={handleProcessingComplete}
+            onComplete={handleProcessingComplete} // Keep this for visual completion logic
             isChatMode={isUploaded}
             isChatProcessing={isChatProcessing}
             chatStep={chatStep}
