@@ -105,10 +105,10 @@ export default function ChatSection({ documentId, onQuerySubmit, onChatComplete,
     clearInterval(stepInterval); 
     setChatStep(5);
 
-    // 2. Notify parent that processing is complete
+    // 3. Notify parent that processing is complete
     onChatComplete(); 
 
-    // 3. Process and display the response
+    // 4. Process and display the response
     if (apiResponse.success) {
         const { answer, citations } = apiResponse.data;
 

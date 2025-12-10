@@ -1,18 +1,14 @@
-// 📁 components/UploadSection.jsx (Simplified for UI/UX)
-
 "use client"
 
 import { motion } from "framer-motion"
 import { Upload, FileText, Zap } from "lucide-react"
 import { useState } from "react"
 import { useTheme } from "../context/ThemeContext"
-// NOTE: axios import and handleUpload function are REMOVED
 
-// Prop changed to onFileSelect (as used in App.jsx)
 export default function UploadSection({ onFileSelect, isProcessing }) { 
   const [fileName, setFileName] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
-  const [uploadError, setUploadError] = useState(null) // Only for validation error display
+  const [uploadError, setUploadError] = useState(null) 
   const { isDark, colors } = useTheme()
 
   // --- Drag & Drop Handlers ---
@@ -31,7 +27,7 @@ export default function UploadSection({ onFileSelect, isProcessing }) {
 
     if (file && file.type === "application/pdf") {
       setFileName(file.name);
-      onFileSelect(file); // 👈 Passes the file object to App.jsx
+      onFileSelect(file); 
     } else if (file) {
       setUploadError("Only PDF files are supported.")
     }
