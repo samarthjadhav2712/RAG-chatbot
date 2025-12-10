@@ -1,7 +1,8 @@
-
+"use client"
 
 import { motion } from "framer-motion"
 import { FileText, Zap, Cpu, Database, Check } from "lucide-react"
+import { useTheme } from "../../context/ThemeContext"
 
 const UPLOAD_STEPS = [
   {
@@ -39,11 +40,13 @@ const UPLOAD_STEPS = [
 ]
 
 export default function UploadPipeline({ currentStep, isProcessing }) {
+  const { isDark, colors } = useTheme()
+
   return (
     <div className="w-full max-w-lg space-y-6">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
-        <h3 className="text-2xl font-bold text-white mb-2">Document Processing</h3>
-        <p className="text-slate-400 text-sm">Pipeline: Text Extraction → Embedding → Storage</p>
+        <h3 className={`text-2xl font-bold ${colors.text.primary} mb-2`}>Document Processing</h3>
+        <p className={colors.text.secondary}>Pipeline: Text Extraction → Embedding → Storage</p>
       </motion.div>
 
       <div className="space-y-4">
@@ -63,7 +66,7 @@ export default function UploadPipeline({ currentStep, isProcessing }) {
               {/* Connector Line */}
               {idx < UPLOAD_STEPS.length - 1 && (
                 <motion.div
-                  className="absolute left-6 top-14 w-0.5 h-12 bg-gradient-to-b from-slate-600 to-slate-700"
+                  className={`absolute left-6 top-14 w-0.5 h-12 bg-gradient-to-b ${isDark ? "from-slate-600 to-slate-700" : "from-slate-300 to-slate-400"}`}
                   initial={{ scaleY: 0 }}
                   animate={{ scaleY: isCompleted ? 1 : 0 }}
                   transition={{ duration: 0.5 }}
@@ -82,10 +85,16 @@ export default function UploadPipeline({ currentStep, isProcessing }) {
                 }}
                 className={`p-4 rounded-xl border-2 transition-all ${
                   isActive
-                    ? `border-blue-500 bg-gradient-to-r ${step.color} bg-opacity-30`
+                    ? isDark
+                      ? `border-blue-500 bg-gradient-to-r ${step.color} bg-opacity-30`
+                      : `border-blue-400 bg-blue-100`
                     : isCompleted
-                      ? "border-green-500 bg-green-500/20"
-                      : "border-slate-700 bg-slate-700/40"
+                      ? isDark
+                        ? "border-green-500 bg-green-500/20"
+                        : "border-green-400 bg-green-100"
+                      : isDark
+                        ? "border-slate-700 bg-slate-700/40"
+                        : "border-slate-300 bg-slate-200"
                 }`}
               >
                 <div className="flex items-start gap-4">
@@ -111,7 +120,7 @@ export default function UploadPipeline({ currentStep, isProcessing }) {
                       <motion.div
                         animate={{ scale: [1, 1.5, 1], opacity: [1, 0, 1] }}
                         transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY }}
-                        className={`absolute inset-0 rounded-lg border-2 border-blue-400`}
+                        className="absolute inset-0 rounded-lg border-2 border-blue-400"
                       />
                     )}
                   </motion.div>
@@ -120,17 +129,27 @@ export default function UploadPipeline({ currentStep, isProcessing }) {
                   <div className="flex-1 pt-1">
                     <motion.h4
                       animate={{
-                        color: isActive ? "#ffffff" : isCompleted ? "#86efac" : "#e2e8f0",
+                        color: isActive
+                          ? isDark
+                            ? "#ffffff"
+                            : "#1e40af"
+                          : isCompleted
+                            ? "#86efac"
+                            : isDark
+                              ? "#e2e8f0"
+                              : "#475569",
                       }}
                       className="font-bold text-base"
                     >
                       {step.title}
                     </motion.h4>
-                    <p className="text-slate-300 text-xs mt-1">{step.subtitle}</p>
+                    <p className={`${isDark ? "text-slate-300" : "text-slate-600"} text-xs mt-1`}>{step.subtitle}</p>
 
                     {/* Progress Bar */}
                     {isActive && (
-                      <motion.div className="mt-3 h-1 bg-slate-600 rounded-full overflow-hidden">
+                      <motion.div
+                        className={`mt-3 h-1 rounded-full overflow-hidden ${isDark ? "bg-slate-600" : "bg-slate-300"}`}
+                      >
                         <motion.div
                           animate={{ x: ["-100%", "0%", "100%"] }}
                           transition={{ duration: 1.2, repeat: Number.POSITIVE_INFINITY }}
@@ -146,18 +165,19 @@ export default function UploadPipeline({ currentStep, isProcessing }) {
         })}
       </div>
 
-      {/* Summary Stats */}
       {currentStep > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-8 p-4 rounded-lg bg-slate-800/50 border border-slate-700 space-y-2"
+          className={`mt-8 p-4 rounded-lg ${isDark ? "bg-slate-800/50 border-slate-700" : "bg-slate-200 border-slate-300"} border space-y-2`}
         >
           <div className="flex justify-between text-sm">
-            <span className="text-slate-400">Completion</span>
-            <span className="text-blue-400 font-semibold">{Math.round((currentStep / 4) * 100)}%</span>
+            <span className={isDark ? "text-slate-400" : "text-slate-600"}>Completion</span>
+            <span className={isDark ? "text-blue-400" : "text-blue-600"} style={{ fontWeight: 600 }}>
+              {Math.round((currentStep / 4) * 100)}%
+            </span>
           </div>
-          <motion.div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+          <motion.div className={`h-2 rounded-full overflow-hidden ${isDark ? "bg-slate-700" : "bg-slate-400"}`}>
             <motion.div
               animate={{ width: `${(currentStep / 4) * 100}%` }}
               transition={{ duration: 0.5 }}

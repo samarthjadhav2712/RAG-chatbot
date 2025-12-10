@@ -1,7 +1,8 @@
-
+"use client"
 
 import { motion } from "framer-motion"
 import { Brain, Search, GitMerge, Zap, Eye, Check } from "lucide-react"
+import { useTheme } from "../../context/ThemeContext"
 
 const QUERY_STEPS = [
   {
@@ -9,7 +10,7 @@ const QUERY_STEPS = [
     title: "Query Analysis",
     subtitle: "LLM complexity check",
     icon: Brain,
-    color: "from-indigo-600 to-purple-700",
+    color: "from-orange-500 to-orange-600",
     details: ["Analyze query type", "Determine complexity"],
   },
   {
@@ -17,7 +18,7 @@ const QUERY_STEPS = [
     title: "Query Embedding",
     subtitle: "Generate vector representation",
     icon: Zap,
-    color: "from-pink-600 to-fuchsia-700",
+    color: "from-pink-500 to-pink-600",
     details: ["Convert to embedding"],
   },
   {
@@ -25,7 +26,7 @@ const QUERY_STEPS = [
     title: "Hybrid Search",
     subtitle: "BM25 + Dense search",
     icon: Search,
-    color: "from-teal-500 to-emerald-600",
+    color: "from-blue-500 to-blue-600",
     details: ["BM25: Top 50", "Dense: Top 50"],
   },
   {
@@ -33,7 +34,7 @@ const QUERY_STEPS = [
     title: "Hybrid Fusion",
     subtitle: "Combine search results",
     icon: GitMerge,
-    color: "from-amber-500 to-orange-600",
+    color: "from-cyan-500 to-cyan-600",
     details: ["Merge results: Top 50"],
   },
   {
@@ -41,17 +42,19 @@ const QUERY_STEPS = [
     title: "Re-Ranking",
     subtitle: "Cross-encoder scoring",
     icon: Eye,
-    color: "from-sky-500 to-blue-600",
+    color: "from-green-500 to-green-600",
     details: ["ms-marco-miniLM", "Final: Top 10"],
   },
 ]
 
 export default function QueryPipeline({ currentStep, isProcessing }) {
+  const { isDark, colors } = useTheme()
+
   return (
     <div className="w-full max-w-lg space-y-6">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
-        <h3 className="text-2xl font-bold text-white mb-2">Query Processing</h3>
-        <p className="text-slate-400 text-sm">Pipeline: Analysis → Embedding → Retrieval → Ranking</p>
+        <h3 className={`text-2xl font-bold ${colors.text.primary} mb-2`}>Query Processing</h3>
+        <p className={colors.text.secondary}>Pipeline: Analysis → Embedding → Retrieval → Ranking</p>
       </motion.div>
 
       <div className="space-y-3">
@@ -71,7 +74,7 @@ export default function QueryPipeline({ currentStep, isProcessing }) {
               {/* Connector Line */}
               {idx < QUERY_STEPS.length - 1 && (
                 <motion.div
-                  className="absolute left-6 top-12 w-0.5 h-10 bg-gradient-to-b from-slate-600 to-slate-700"
+                  className={`absolute left-6 top-12 w-0.5 h-10 bg-gradient-to-b ${isDark ? "from-slate-600 to-slate-700" : "from-slate-300 to-slate-400"}`}
                   initial={{ scaleY: 0 }}
                   animate={{ scaleY: isCompleted ? 1 : 0 }}
                   transition={{ duration: 0.5 }}
@@ -90,10 +93,16 @@ export default function QueryPipeline({ currentStep, isProcessing }) {
                 }}
                 className={`p-3 rounded-xl border-2 transition-all ${
                   isActive
-                    ? `border-blue-400 bg-gradient-to-r ${step.color} bg-opacity-30`
+                    ? isDark
+                      ? `border-blue-400 bg-gradient-to-r ${step.color} bg-opacity-30`
+                      : `border-blue-400 bg-blue-100`
                     : isCompleted
-                      ? "border-green-500 bg-green-500/20"
-                      : "border-slate-700 bg-slate-700/40"
+                      ? isDark
+                        ? "border-green-500 bg-green-500/20"
+                        : "border-green-400 bg-green-100"
+                      : isDark
+                        ? "border-slate-700 bg-slate-700/40"
+                        : "border-slate-300 bg-slate-200"
                 }`}
               >
                 <div className="flex items-start gap-3">
@@ -118,7 +127,7 @@ export default function QueryPipeline({ currentStep, isProcessing }) {
                       <motion.div
                         animate={{ scale: [1, 1.5, 1], opacity: [1, 0, 1] }}
                         transition={{ duration: 1.2, repeat: Number.POSITIVE_INFINITY }}
-                        className={`absolute inset-0 rounded-lg border-2 border-blue-400`}
+                        className="absolute inset-0 rounded-lg border-2 border-blue-400"
                       />
                     )}
                   </motion.div>
@@ -127,13 +136,21 @@ export default function QueryPipeline({ currentStep, isProcessing }) {
                   <div className="flex-1 pt-0.5">
                     <motion.h4
                       animate={{
-                        color: isActive ? "#ffffff" : isCompleted ? "#86efac" : "#e2e8f0",
+                        color: isActive
+                          ? isDark
+                            ? "#ffffff"
+                            : "#1e40af"
+                          : isCompleted
+                            ? "#86efac"
+                            : isDark
+                              ? "#e2e8f0"
+                              : "#475569",
                       }}
                       className="font-bold text-sm"
                     >
                       {step.title}
                     </motion.h4>
-                    <p className="text-slate-300 text-xs mt-0.5">{step.subtitle}</p>
+                    <p className={`${isDark ? "text-slate-300" : "text-slate-600"} text-xs mt-0.5`}>{step.subtitle}</p>
 
                     {/* Details */}
                     {isActive && (
@@ -148,12 +165,12 @@ export default function QueryPipeline({ currentStep, isProcessing }) {
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: i * 0.1 }}
-                            className="text-xs text-cyan-300 flex items-center gap-2"
+                            className={`text-xs flex items-center gap-2 ${isDark ? "text-cyan-300" : "text-cyan-700"}`}
                           >
                             <motion.div
                               animate={{ scale: [1, 1.3, 1] }}
                               transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY }}
-                              className="w-1.5 h-1.5 rounded-full bg-cyan-400"
+                              className={`w-1.5 h-1.5 rounded-full ${isDark ? "bg-cyan-400" : "bg-cyan-600"}`}
                             />
                             {detail}
                           </motion.div>
@@ -163,7 +180,9 @@ export default function QueryPipeline({ currentStep, isProcessing }) {
 
                     {/* Progress Bar */}
                     {isActive && (
-                      <motion.div className="mt-2 h-0.5 bg-slate-600 rounded-full overflow-hidden">
+                      <motion.div
+                        className={`mt-2 h-0.5 rounded-full overflow-hidden ${isDark ? "bg-slate-600" : "bg-slate-400"}`}
+                      >
                         <motion.div
                           animate={{ x: ["-100%", "0%", "100%"] }}
                           transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY }}
@@ -179,25 +198,26 @@ export default function QueryPipeline({ currentStep, isProcessing }) {
         })}
       </div>
 
-      {/* Summary Stats */}
       {currentStep > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-6 p-4 rounded-lg bg-slate-800/50 border border-slate-700 space-y-3"
+          className={`mt-6 p-4 rounded-lg ${isDark ? "bg-slate-800/50 border-slate-700" : "bg-slate-200 border-slate-300"} border space-y-3`}
         >
           <div className="flex justify-between text-sm">
-            <span className="text-slate-400">Processing</span>
-            <span className="text-green-400 font-semibold">{Math.round((currentStep / 5) * 100)}%</span>
+            <span className={isDark ? "text-slate-400" : "text-slate-600"}>Processing</span>
+            <span className={isDark ? "text-green-400" : "text-green-600"} style={{ fontWeight: 600 }}>
+              {Math.round((currentStep / 5) * 100)}%
+            </span>
           </div>
-          <motion.div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+          <motion.div className={`h-2 rounded-full overflow-hidden ${isDark ? "bg-slate-700" : "bg-slate-400"}`}>
             <motion.div
               animate={{ width: `${(currentStep / 5) * 100}%` }}
               transition={{ duration: 0.5 }}
               className="h-full bg-gradient-to-r from-green-500 to-green-600"
             />
           </motion.div>
-          <div className="text-xs text-slate-400 pt-2">
+          <div className={`text-xs ${isDark ? "text-slate-400" : "text-slate-600"} pt-2`}>
             Step {currentStep} of {QUERY_STEPS.length}
           </div>
         </motion.div>

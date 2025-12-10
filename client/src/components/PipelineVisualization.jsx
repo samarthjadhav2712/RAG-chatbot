@@ -19,7 +19,7 @@ export default function PipelineVisualization({
     if (!isProcessing) return
 
     const stepsCount = 4
-    const stepDuration = 1250 // 4 steps = 5 seconds total
+    const stepDuration = 2000 // 4 steps = 5 seconds total
 
     const interval = setInterval(() => {
       setCurrentStep((prev) => {
@@ -41,7 +41,7 @@ export default function PipelineVisualization({
     if (!isChatProcessing) return
 
     const stepsCount = 5
-    const stepDuration = 1000 // 5 steps = 5 seconds total
+    const stepDuration = 2000 // 5 steps = 5 seconds total
 
     const interval = setInterval(() => {
       setChatStep((prev) => {
